@@ -1,3 +1,15 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
+}
+
 include ':app'
 
 def localPropertiesFile = new File(rootDir.parentFile, 'local.properties')
@@ -9,9 +21,5 @@ if (localPropertiesFile.exists()) {
 
 def flutterSdkPath = properties.getProperty('flutter.sdk')
 if (flutterSdkPath != null) {
-    // Load the app_plugin_loader.gradle if it exists
-    def pluginFile = new File(flutterSdkPath, 'packages/flutter_tools/gradle/app_plugin_loader.gradle')
-    if (pluginFile.exists()) {
-        apply from: pluginFile
-    }
+    apply from: "$flutterSdkPath/packages/flutter_tools/gradle/app_plugin_loader.gradle"
 }
