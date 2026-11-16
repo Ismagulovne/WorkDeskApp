@@ -1,3 +1,32 @@
+pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        def propertiesFile = new File(rootDir.parentFile, 'local.properties')
+        if (propertiesFile.exists()) {
+            properties.load(propertiesFile.newInputStream())
+        }
+        return properties.getProperty('flutter.sdk', System.getenv('FLUTTER_SDK'))
+    }()
+
+    if (flutterSdkPath != null) {
+        addPluginRepository {
+            gradle.projectsEvaluated {
+                rootProject.projectDir.parentFile.eachDir { dir ->
+                    if (new File(dir, '.flutter-plugins').exists()) {
+                        includeBuild(new File(dir, '.android'))
+                    }
+                }
+            }
+        }
+
+        searchPaths += new File(flutterSdkPath, 'packages/flutter_tools/gradle')
+    }
+}
+
+plugins {
+    id 'dev.flutter.flutter-gradle-plugin' version '1.0.0' apply false
+}
+
 include ':app'
 
 def localPropertiesFile = new File(rootDir.parentFile, 'local.properties')
@@ -9,8 +38,5 @@ if (localPropertiesFile.exists()) {
 
 def flutterSdkPath = properties.getProperty('flutter.sdk')
 if (flutterSdkPath != null) {
-    def pluginLoaderPath = "$flutterSdkPath/packages/flutter_tools/gradle/app_plugin_loader.gradle"
-    if (new File(pluginLoaderPath).exists()) {
-        apply from: pluginLoaderPath
-    }
+    apply from: "$flutterSdkPath/packages/flutter_tools/gradle/app_plugin_loader.gradle"
 }
