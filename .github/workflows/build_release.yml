@@ -1,0 +1,75 @@
+name: 🚀 Build Release APK & AAB
+
+on:
+  workflow_dispatch:  # Запуск вручную через GitHub UI
+  push:
+    tags:
+      - 'v*'  # Запуск при создании тега версии (например: v1.0.0)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: 💙 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: 📦 Get dependencies
+        run: flutter pub get
+      
+      - name: 🧹 Clean build
+        run: flutter clean
+      
+      - name: 🔨 Build APK (Release)
+        run: flutter build apk --release
+      
+      - name: 📦 Build AAB (Release)
+        run: flutter build appbundle --release
+      
+      - name: 📤 Upload APK to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: workdesk-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+      
+      - name: 📤 Upload AAB to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: workdesk-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+      
+      - name: 📝 Create Release
+        uses: actions/create-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: WorkDesk ${{ github.ref }}
+          body: |
+            ## WorkDesk Release
+            
+            APK and AAB files are ready for Google Play Store!
+            
+            **Files:**
+            - APK: `workdesk-apk/app-release.apk`
+            - AAB: `workdesk-aab/app-release.aab`
+            
+            Download from artifacts section.
+          draft: false
+          prerelease: false
+
